@@ -23,7 +23,8 @@ pipeline {
 
             post {
                 always {
-                    jacoco(execPattern: 'target/jacoco.exec')
+                    archiveArtifacts artifacts: 'target/site/jacoco/**/*', allowEmptyArchive: true
+                    jacoco reportPath: 'target/site/jacoco/'
                 }
             }
         }
