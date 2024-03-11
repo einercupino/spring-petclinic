@@ -6,38 +6,30 @@ pipeline {
     }
 
     tools {
-        maven 'Maven'
+        maven 'maven'
     }
 
-    stage('Report') {
+    stages {
+        stage('Build') {
             steps {
-                script {
-                    sh 'mvn clean test jacoco:report'
-                }
+                tool 'Maven'
+                bat 'mvn clean package'
             }
+        }
+
+        stage('Test with JaCoCo') {
+            steps {
+                tool 'Maven'
+                bat 'mvn test jacoco:report'
+            }
+
             post {
                 always {
-                    jacoco(
-                        execPattern: '**/**.exec',
-                        classPattern: '**/classes',
-                        sourcePattern: '**/src/main/java',
-                        check: [
-                            buildOverBuild: true,
-                            stability: true
-                        ]
-                    )
-                    publishHTML([
-                        allowMissing: false,
-                        alwaysLinkToLastBuild: false,
-                        keepAll: true,
-                        reportDir: 'target/site/jacoco/',
-                        reportFiles: 'index.html',
-                        reportName: 'JaCoCo Coverage Report',
-                        reportTitles: ''
-                    ])
+                    jacoco execPattern: '**/target/jacoco.exec', classPattern: '**/classes', sourcePattern: '**/src/main/java'
                 }
             }
         }
+    }
 
     post {
         success {
