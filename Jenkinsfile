@@ -9,26 +9,35 @@ pipeline {
         maven 'Maven'
     }
 
-    stages {
-        stage('Build') {
+    stage('Report') {
             steps {
-                sh 'mvn clean package'
+                script {
+                    sh 'mvn clean test jacoco:report'
+                }
             }
-        }
-
-        stage('Test with JaCoCo') {
-            steps {
-                sh 'mvn test jacoco:report'
-            }
-
             post {
                 always {
-                    archiveArtifacts artifacts: 'target/site/jacoco/**/*', allowEmptyArchive: true
-                    jacoco reportPath: 'target/site/jacoco/'
+                    jacoco(
+                        execPattern: '**/**.exec',
+                        classPattern: '**/classes',
+                        sourcePattern: '**/src/main/java',
+                        check: [
+                            buildOverBuild: true,
+                            stability: true
+                        ]
+                    )
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: false,
+                        keepAll: true,
+                        reportDir: 'target/site/jacoco/',
+                        reportFiles: 'index.html',
+                        reportName: 'JaCoCo Coverage Report',
+                        reportTitles: ''
+                    ])
                 }
             }
         }
-    }
 
     post {
         success {
